@@ -2,6 +2,9 @@
 
 A little project to make myself easy to redownload way faster from Steam<br/>
 
+![image](https://github.com/user-attachments/assets/379d39d8-45ee-4df7-8716-49006492ce14)
+
+
 Caches steam files locally. When redownload from steam, checks the cache first.<br/>
 
 Steam download servers can be added in steamservers.json.<br/>
