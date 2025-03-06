@@ -175,9 +175,9 @@
             label6.AutoSize = true;
             label6.Location = new Point(12, 96);
             label6.Name = "label6";
-            label6.Size = new Size(75, 15);
+            label6.Size = new Size(47, 15);
             label6.TabIndex = 14;
-            label6.Text = "Filter depots:";
+            label6.Text = "Depots:";
             // 
             // txtDepotFilter
             // 
