@@ -20,5 +20,6 @@ Make sure firewalls are able to pass the traffic.
 
 Maybe this is needed too, run as elevated in dos prompt:
 netsh http add urlacl url=http://+:80/MyUri user=DOMAIN\user
+
 See here: http://msdn.microsoft.com/en-us/library/ms733768.aspx which shows this:
 
