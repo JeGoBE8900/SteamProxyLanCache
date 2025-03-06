@@ -1,0 +1,11 @@
+{
+  "steamservers": [
+    { "url": "cache10-ams1.steamcontent.com" },
+    { "url": "cache#-ams1.steamcontent.com" },
+    { "url": "cache#-ams2.steamcontent.com" },
+    { "url": "cache#-ams3.steamcontent.com" }
+
+  ]
+
+
+}
