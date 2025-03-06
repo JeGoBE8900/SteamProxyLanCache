@@ -8,9 +8,6 @@ Steam download servers can be added in steamservers.json.<br/>
 Config can be changed in settings.json or UI.<br/>
 You can filter by steamdepot number, eg. 123456;789123. U can place a * to allow caching of all depots.<br/>
 
-To support this tool, https://www.paypal.com/donate/?hosted_button_id=XKHD6S28ZUPKC
-
-
 This tool runs with a httpListener on port 80.<br/><br/>
 
 Host file of your OS should include 127.0.0.1	lancache.steamcontent.com or,<br/>
@@ -22,3 +19,4 @@ Maybe this is needed too, run as elevated in dos prompt:<br/>
 netsh http add urlacl url=http://+:80/MyUri user=DOMAIN\user <br/>
 See here: http://msdn.microsoft.com/en-us/library/ms733768.aspx
 
+To support this tool, https://www.paypal.com/donate/?hosted_button_id=XKHD6S28ZUPKC
