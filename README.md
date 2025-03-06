@@ -4,6 +4,8 @@ A little project to make myself easy to redownload way faster from Steam<br/>
 
 ![image](https://github.com/user-attachments/assets/379d39d8-45ee-4df7-8716-49006492ce14)
 
+![image](https://github.com/user-attachments/assets/18c38f32-ebb6-43f7-a868-5a707be2c125)
+
 
 Caches steam files locally. When redownload from steam, checks the cache first.<br/>
 
