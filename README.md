@@ -1,4 +1,4 @@
-# SteamProxyLanCahe
+# SteamProxyLanCache
 
 A little project to make myself easy to redownload way faster from Steam<br/>
 
