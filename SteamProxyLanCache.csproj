@@ -16,6 +16,9 @@
     <None Update="settings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="steam-multi-size.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="steamservers.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

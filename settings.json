@@ -2,6 +2,8 @@
   "steamcache": "cache10-ams1.steamcontent.com",
   "localcache": "D:\\SteamCache",
   "usecache": "true",
-  "filterdepot": "2399421;2399422;*"
+  "filterdepot": "2399421;2399422;*",
+  "autostart": "true",
+  "unuseddaysremoval" :  "14"
 
 }
