@@ -33,4 +33,6 @@ Maybe this is needed too, run as elevated in dos prompt:<br/>
 netsh http add urlacl url=http://+:80/ user=DOMAIN\user <br/>
 See here: http://msdn.microsoft.com/en-us/library/ms733768.aspx
 
+Made with Visual Studio Community 2022. You'll probably need to install .NET Desktop Runtime 8 (https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+
 To support this tool, https://www.paypal.com/donate/?hosted_button_id=XKHD6S28ZUPKC
