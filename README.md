@@ -8,6 +8,7 @@ A little project to make myself easy to redownload way faster from Steam<br/>
 
 ![image](https://github.com/user-attachments/assets/eb62faba-0ddc-48a9-a26f-a432a4e31525)
 
+![image](https://github.com/user-attachments/assets/2a2c5c8d-e5a6-4f51-8c47-6a9eed73c9cc)
 
 
 ![image](https://github.com/user-attachments/assets/18c38f32-ebb6-43f7-a868-5a707be2c125)
