@@ -22,6 +22,8 @@ You can filter by steamdepot number, eg. 123456;789123. You can place a * to all
 
 This tool runs with a httpListener on port 80.<br/><br/>
 
+Put shortcut in C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup to autostart. <br/>
+
 Host file of your OS should include 127.0.0.1	lancache.steamcontent.com or,<br/>
 adjust your DNS server for lancache.steamcontent.com to the IP address of the computer runnning this tool.
 
