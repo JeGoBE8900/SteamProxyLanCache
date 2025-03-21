@@ -194,10 +194,19 @@ namespace SteamProxyLanCache
 
             if (!listener.IsListening)
             {
+                try
+                {
+                    listener.Prefixes.Add(httpEndpoint);
+                    listener.Start();
+                    LogLine("httpListener start", "");
+                }
+                catch (Exception ex)
+                {
+                    LogLine("httpListener failed to start", ex.ToString());
+                    lblStatus.Text = "Stopped";
+                    btnRun.Text = "Start";
+                }
 
-                listener.Prefixes.Add(httpEndpoint);
-                listener.Start();
-                LogLine("httpListener start", "");
 
                 while (lblStatus.Text == "Running")
                 {
@@ -212,9 +221,20 @@ namespace SteamProxyLanCache
 
                 }
 
-                listener.Stop();
-                LogLine("httpListener stop", "");
+                try
+                {
+                    listener.Stop();
+                    LogLine("httpListener stop", "");
+                    
+                }catch(Exception ex)
+                {
+
+                }
+
                 lblStatus.Text = "Stopped";
+                btnRun.Text = "Start";
+
+
             }
 
 
@@ -244,7 +264,9 @@ namespace SteamProxyLanCache
                     originalContext.Response.Close();
                 }
                 catch (Exception e)
+
                 {
+                    LogLine("Request " + originalContext.Request.RawUrl, e.ToString());
                 }
 
 
@@ -319,7 +341,10 @@ namespace SteamProxyLanCache
             catch (Exception ex)
             {
 
-                LogLine("Error", ex.Message);
+                LogLine(requestData.webRequest.Address.OriginalString, ex.Message);
+                
+                originalResponse.OutputStream.Close();
+                originalResponse.Close();
 
             }
 
@@ -535,14 +560,18 @@ namespace SteamProxyLanCache
 
             LogLine("Settings saved", "");
 
-            if (MessageBox.Show("Stop HTTP Listener?", "", MessageBoxButtons.YesNo) == DialogResult.Yes && lblStatus.Text == "Running")
+            if(lblStatus.Text == "Running")
             {
-                listener.Stop();
+                if (MessageBox.Show("Stop HTTP Listener?", "", MessageBoxButtons.YesNo) == DialogResult.Yes )
+                {
+                    listener.Stop();
 
 
-                btnRun.Text = "Start";
-                lblStatus.Text = "Stopped";
+                    btnRun.Text = "Start";
+                    lblStatus.Text = "Stopped";
+                }
             }
+
 
         }
 
@@ -562,16 +591,18 @@ namespace SteamProxyLanCache
 
                     foreach (DriveInfo d in allDrives)
                     {
-                        double prct = (100 / (float)d.TotalSize * d.TotalFreeSpace);
-                        double freespace = d.TotalFreeSpace / 1024 / 1024 / 1024;
+                        
+                        double usedspace =  (d.TotalSize - d.TotalFreeSpace) / 1024 / 1024 / 1024;
                         double totalspace = d.TotalSize / 1024 / 1024 / 1024;
+
+                        double prct = (100 / (float)d.TotalSize * (d.TotalSize - d.TotalFreeSpace));
 
 
                         ListViewItem item = new ListViewItem(d.Name);
                         item.Tag = d;
                         item.SubItems.Add(d.VolumeLabel);
                         item.SubItems.Add(totalspace.ToString() + " Gb");
-                        item.SubItems.Add(freespace.ToString() + " Gb");
+                        item.SubItems.Add(usedspace.ToString() + " Gb");
                         item.SubItems.Add(Math.Round(prct).ToString() + "%");
 
                         if (steamLocalCacheFolder != null)
@@ -611,32 +642,61 @@ namespace SteamProxyLanCache
 
                 //ctTokenDeleteUnusedDepots.WaitHandle.WaitOne(1000 * 30);
 
-                if (!Directory.Exists(steamLocalCacheFolder)) { return; }
-
-                foreach (string sFile in Directory.GetFiles(steamLocalCacheFolder, "*.dat", SearchOption.AllDirectories))
-                {
-                    string sFileName = sFile.Replace(steamLocalCacheFolder, "");
-                    sFileName = sFileName.Replace(".dat", "");
-
-
-                    if (daysRemoval == 0)
-                    {
-                        oCacheDB.CheckFile(sFileName, DateAndTime.Now.AddDays(3650), true);
-                    }
-                    else
-                    {
-                        if (daysRemoval > 0) { daysRemoval = daysRemoval * -1; }
-                        oCacheDB.CheckFile(sFileName, DateAndTime.Now.AddDays(daysRemoval * -1), true);
-                    }
-
-
-                }
+              
 
                 ctTokenDeleteUnusedDepots.WaitHandle.WaitOne(1000 * 60 * 60);
             }
 
+        }
 
+        private void CleanFilesFromDisk()
+        {
+            
+            if (!Directory.Exists(steamLocalCacheFolder)) {
+                LogLine("Ignore cleaning cache because there is no cache", "");
+                return;
+            }
+            if (daysRemoval == 0){
+                LogLine("Ignore cleaning cache because days to keep is 0", "");
+                return; 
+            }
 
+            LogLine("Start cleaning cache", "");
+
+            int negDaysRemoval = 0;
+            if (daysRemoval > 0) { negDaysRemoval = daysRemoval * -1; }
+            else { negDaysRemoval = daysRemoval; }
+
+            string[] files = Directory.GetFiles(steamLocalCacheFolder, "*.dat", SearchOption.AllDirectories);
+            LogLine(files.Length + " files in cache", "");
+
+            int filesDeleted = 0;
+
+            foreach (string sFile in files)
+            {
+                string sFileName = sFile.Replace(steamLocalCacheFolder, "");
+                sFileName = sFileName.Replace(".dat", "");
+
+                Boolean bCacheFileToUnregister = oCacheDB.CacheFileToUnregister(sFileName, DateAndTime.Now.AddDays(negDaysRemoval));
+
+                if (bCacheFileToUnregister)
+                {
+                    File.Delete(sFile);
+                    oCacheDB.UnregisterCacheFile(sFileName);
+                    filesDeleted ++;
+
+                }
+
+            }
+
+            LogLine(filesDeleted + " deleted from cache", "");
+            LogLine("End cleaning cache", "");
+
+        }
+
+        private void btnCleanFiles_Click(object sender, EventArgs e)
+        {
+            CleanFilesFromDisk();
         }
 
         #endregion diskspace
@@ -670,9 +730,6 @@ namespace SteamProxyLanCache
             }
         }
 
-        private void btnCleanFiles_Click(object sender, EventArgs e)
-        {
-            deleteUnusedDepots();
-        }
+
     }
 }

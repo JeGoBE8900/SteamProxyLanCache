@@ -3,8 +3,15 @@
     { "url": "cache10-ams1.steamcontent.com" },
     { "url": "cache#-ams1.steamcontent.com" },
     { "url": "cache#-ams2.steamcontent.com" },
-    { "url": "cache#-ams3.steamcontent.com" }
-
+    { "url": "cache#-ams3.steamcontent.com" },
+    { "url": "cache10-fra1.steamcontent.com" },
+    { "url": "cache#-fra1.steamcontent.com" },
+    { "url": "cache#-fra2.steamcontent.com" },
+    { "url": "cache#-fra3.steamcontent.com" },
+    { "url": "cache10-lax1.steamcontent.com" },
+    { "url": "cache#-lax1.steamcontent.com" },
+    { "url": "cache#-lax2.steamcontent.com" },
+    { "url": "cache#-lax3.steamcontent.com" }
   ]
 
 

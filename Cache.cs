@@ -2,6 +2,7 @@
 using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,8 @@ namespace SteamProxyLanCache
 
         public string sDateUsage = "";
 
+        public static string sDateFormat = "yyyyMMdd";
+
 
         public Cache()
         {
@@ -26,8 +29,8 @@ namespace SteamProxyLanCache
 
             using (conn = new SqliteConnection(cs))
             {
-                
-                
+
+
                 conn.Open();
 
                 var command = conn.CreateCommand();
@@ -42,9 +45,21 @@ namespace SteamProxyLanCache
                         command.CommandText = cs;
                         command.ExecuteNonQuery();
                     }
-                 
 
-                }      
+
+                }
+
+                command = conn.CreateCommand();
+                command.CommandText = "SELECT name,accessed FROM cache";
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        filecache.Add(reader.GetString(0) + "-" + reader.GetString(1));
+                    }
+
+                }
 
             }
 
@@ -53,17 +68,18 @@ namespace SteamProxyLanCache
 
         public void RegisterFile(string name)
         {
-            sDateUsage = DateTime.Now.ToString("yyyy-MM-dd");
+            sDateUsage = DateTime.Now.ToString(sDateFormat);
 
-            if (conn.State != System.Data.ConnectionState.Open)
-            {
-                conn.Open();
-                
-            }
 
             if(!filecache.Contains(name + "-" + sDateUsage))
             {
                 filecache.Add(name + "-" + sDateUsage);
+
+                if (conn.State != System.Data.ConnectionState.Open)
+                {
+                    conn.Open();
+
+                }
 
                 int iRows = -1;
 
@@ -76,8 +92,25 @@ namespace SteamProxyLanCache
 
         }
 
-        public Boolean CheckFile(string name, DateTime dateCheck, Boolean dDeleteFromCacheDB)
+        public void UnregisterCacheFile(string name)
         {
+            if (conn.State != System.Data.ConnectionState.Open)
+            {
+                conn.Open();
+            }
+
+            var command = conn.CreateCommand();
+            command.CommandText = "DELETE FROM cache WHERE name = '" + name + "'";
+            command.ExecuteNonQuery();
+
+            filecache.RemoveAll(c => c.Contains(name));
+
+        }
+
+
+        public Boolean CacheFileToUnregister(string name, DateTime dateCheck)
+        {
+            name = name.Replace(@"\", @"/");
 
 
             if (conn.State != System.Data.ConnectionState.Open)
@@ -85,21 +118,27 @@ namespace SteamProxyLanCache
                 conn.Open();
             }
 
-
-
             var command = conn.CreateCommand();
-            command.CommandText = "SELECT name,accessed FROM cache WHERE name = '"+ name +"'";
+            command.CommandText = "SELECT name,accessed FROM cache WHERE name = '"+ name +"' LIMIT 1";
 
             using (var reader = command.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    var filename = reader.GetString(0);
-                    var fileaccessed = int.Parse(reader.GetString(1));
+                   string filename = reader.GetString(0);
+                   DateTime fileaccessed = DateTime.ParseExact(reader.GetString(1), sDateFormat, new CultureInfo("nl-BE"));
 
 
+                    if (fileaccessed < dateCheck)
+                    {
 
-
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+  
                 }
             }
 
