@@ -37,9 +37,8 @@ namespace SteamProxyLanCache
         public static CancellationTokenSource ctsCheckDiskSpace;
         public static CancellationToken ctTokenCheckDiskSpace;
 
+        public static Cache oCacheDB;
 
-
-        public static List<string> usedDepots;
 
         public SteamProxyLanCache()
         {
@@ -52,7 +51,10 @@ namespace SteamProxyLanCache
             LogLine("Program start", "");
             lblStatus.Text = "Stopped";
 
-            usedDepots = new List<string> { };
+            oCacheDB = new Cache();
+            LogLine("initialize database", "");
+
+
             forceBypassCache = false;
 
             CheckDNS();
@@ -60,6 +62,11 @@ namespace SteamProxyLanCache
             getSteamServers();
             getConfig();
             startTrayIcon();
+
+            if (chbMinize.Checked)
+            {
+                this.WindowState = FormWindowState.Minimized;
+            }
 
 
             if (chbAutoStart.Checked)
@@ -69,11 +76,11 @@ namespace SteamProxyLanCache
             }
 
 
-            ctsDeleteUnusedDepots = new CancellationTokenSource();
+            /*ctsDeleteUnusedDepots = new CancellationTokenSource();
             ctTokenDeleteUnusedDepots = ctsDeleteUnusedDepots.Token;
 
             Task taskDeleteUnusedDepots = new Task(() => { deleteUnusedDepots(); }, ctTokenDeleteUnusedDepots);
-            taskDeleteUnusedDepots.Start();
+            taskDeleteUnusedDepots.Start();*/
 
             ctsCheckDiskSpace = new CancellationTokenSource();
             ctTokenCheckDiskSpace = ctsCheckDiskSpace.Token;
@@ -112,9 +119,12 @@ namespace SteamProxyLanCache
                 lblStatus.Text = "Stopped";
                 btnRun.Text = "Start";
 
+
                 listener.Stop();
                 LogLine("Listener stopped", "");
             }
+
+            tsmiStatus.Text = lblStatus.Text;
         }
 
         private void btnRun_Click(object sender, EventArgs e)
@@ -167,7 +177,8 @@ namespace SteamProxyLanCache
                 {
                     lvLog.Invoke(new Action(() => { lvLog.Items[lvLog.Items.Count - 1].Remove(); }));
                 }
-            }catch (Exception) { }
+            }
+            catch (Exception) { }
 
 
         }
@@ -218,27 +229,7 @@ namespace SteamProxyLanCache
             var depot = Tools.getDepotFromURL(rawUrl);
 
 
-            var curDate = DateAndTime.Today.ToString("yyyyMMdd");
-
-            if (!usedDepots.Contains(depot + "-" + curDate))
-            {
-                usedDepots.Add(depot + "-" + curDate);
-
-                string depotlastusedpath = steamLocalCacheFolder + "\\depot\\" + depot + "\\" + "_lastused.txt";
-
-                try
-                {
-                    StreamWriter sw = File.CreateText(depotlastusedpath);
-                    sw.Write(curDate.ToString());
-                    sw.Flush();
-                    sw.Close();
-                }
-                catch (Exception ex) { }
-
-            }
-
-
-
+            oCacheDB.RegisterFile(rawUrl);
 
 
             if (File.Exists(cachefilepath + ".dat") && steamLocalCacheEnabled && bFilterDepot == false)
@@ -285,11 +276,7 @@ namespace SteamProxyLanCache
             string cachefilepath = steamLocalCacheFolder + requestData.context.Request.RawUrl;
             string cachedirpath = steamLocalCacheFolder + requestData.context.Request.RawUrl.Substring(0, requestData.context.Request.RawUrl.LastIndexOf('/') + 1);
 
-
-
-
             ///downloaden
-
             try
             {
 
@@ -445,7 +432,7 @@ namespace SteamProxyLanCache
 
                 if (jResult.ContainsKey("usecache"))
                 {
-                    if (jResult["usecache"].ToString() == "true")
+                    if (jResult["usecache"].ToString().ToLower() == "true")
                     {
                         chbLocalCacheUse.Checked = true;
                     }
@@ -454,11 +441,24 @@ namespace SteamProxyLanCache
 
                 if (jResult.ContainsKey("autostart"))
                 {
-                    if (jResult["autostart"].ToString() == "true")
+                    if (jResult["autostart"].ToString().ToLower() == "true")
                     {
                         chbAutoStart.Checked = true;
                     }
+                    else { chbAutoStart.Checked = false; }
                 }
+                else { chbAutoStart.Checked = false; }
+
+
+                if (jResult.ContainsKey("minimizeatstart"))
+                {
+                    if (jResult["minimizeatstart"].ToString().ToLower() == "true")
+                    {
+                        chbMinize.Checked = true;
+                    }
+                    else { chbMinize.Checked = false; }
+                }
+                else { chbMinize.Checked = false; }
 
 
                 if (jResult.ContainsKey("unuseddaysremoval"))
@@ -503,14 +503,20 @@ namespace SteamProxyLanCache
 
         private void nfTray_MouseClick(object sender, MouseEventArgs e)
         {
-            if (this.WindowState == FormWindowState.Minimized) {
-                this.WindowState = FormWindowState.Normal;
-            }
-            else
+            if (e.Button == MouseButtons.Left)
             {
-                this.WindowState = FormWindowState.Minimized;
+                if (this.WindowState == FormWindowState.Minimized)
+                {
+                    this.WindowState = FormWindowState.Normal;
+                }
+                else
+                {
+                    this.WindowState = FormWindowState.Minimized;
+                }
             }
-            
+
+
+
         }
 
         private void button1_Click_1(object sender, EventArgs e)
@@ -521,8 +527,8 @@ namespace SteamProxyLanCache
                 new JProperty("usecache", chbLocalCacheUse.Checked.ToString()),
                 new JProperty("filterdepot", txtDepotFilter.Text),
                 new JProperty("autostart", chbAutoStart.Checked.ToString()),
-                new JProperty("unuseddaysremoval", nudKeepUnusedDays.Value.ToString())
-
+                new JProperty("unuseddaysremoval", nudKeepUnusedDays.Value.ToString()),
+                new JProperty("minimizeatstart", chbMinize.Checked.ToString())
                 );
 
             File.WriteAllText(System.Environment.CurrentDirectory + "\\settings.json", settings.ToString());
@@ -603,47 +609,30 @@ namespace SteamProxyLanCache
             while (!ctTokenDeleteUnusedDepots.IsCancellationRequested)
             {
 
-                ctTokenDeleteUnusedDepots.WaitHandle.WaitOne(1000* 30);
+                //ctTokenDeleteUnusedDepots.WaitHandle.WaitOne(1000 * 30);
 
-                var depotfolder = steamLocalCacheFolder + "\\depot\\";
+                if (!Directory.Exists(steamLocalCacheFolder)) { return; }
 
-                if (!Directory.Exists(depotfolder)) { return; }
-
-                foreach (string sDir in Directory.GetDirectories(depotfolder))
+                foreach (string sFile in Directory.GetFiles(steamLocalCacheFolder, "*.dat", SearchOption.AllDirectories))
                 {
-                    string depotLastUsedFile = sDir + "\\" + "_lastused.txt";
+                    string sFileName = sFile.Replace(steamLocalCacheFolder, "");
+                    sFileName = sFileName.Replace(".dat", "");
 
-                    if (File.Exists(depotLastUsedFile))
+
+                    if (daysRemoval == 0)
                     {
-
-                        try
-                        {
-                            var sLastUsed = File.ReadAllText(depotLastUsedFile);
-                            DateTime dlastUsed = DateTime.ParseExact(sLastUsed, "yyyyMMdd", CultureInfo.InvariantCulture);
-
-                            var diffOfDates = DateTime.Today - dlastUsed;
-                            if (diffOfDates.Days > daysRemoval)
-                            {
-                                Directory.Delete(sDir, true);
-                            }
-
-                        }
-                        catch (Exception ex)
-                        {
-                            Directory.Delete(sDir, true);
-                        }
-
+                        oCacheDB.CheckFile(sFileName, DateAndTime.Now.AddDays(3650), true);
                     }
                     else
                     {
-                        Directory.Delete(sDir, true);
+                        if (daysRemoval > 0) { daysRemoval = daysRemoval * -1; }
+                        oCacheDB.CheckFile(sFileName, DateAndTime.Now.AddDays(daysRemoval * -1), true);
                     }
+
 
                 }
 
-                
                 ctTokenDeleteUnusedDepots.WaitHandle.WaitOne(1000 * 60 * 60);
-
             }
 
 
@@ -654,8 +643,36 @@ namespace SteamProxyLanCache
 
         private void SteamProxyLanCache_FormClosing(object sender, FormClosingEventArgs e)
         {
-  
+
         }
-        
+
+        private void nfTray_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+
+
+        private void steamProxyLanCachToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.WindowState == FormWindowState.Normal)
+            {
+                this.WindowState = FormWindowState.Minimized;
+            }
+            else
+            {
+                this.WindowState = FormWindowState.Normal;
+            }
+        }
+
+        private void btnCleanFiles_Click(object sender, EventArgs e)
+        {
+            deleteUnusedDepots();
+        }
     }
 }

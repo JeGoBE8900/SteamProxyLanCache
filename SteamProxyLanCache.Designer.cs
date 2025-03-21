@@ -43,6 +43,12 @@
             label6 = new Label();
             txtDepotFilter = new TextBox();
             nfTray = new NotifyIcon(components);
+            cmTray = new ContextMenuStrip(components);
+            steamProxyLanCachToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem1 = new ToolStripSeparator();
+            tsmiStatus = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripSeparator();
+            exitToolStripMenuItem = new ToolStripMenuItem();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
             groupBox2 = new GroupBox();
@@ -56,6 +62,11 @@
             groupBox1 = new GroupBox();
             lblDnsStatus = new Label();
             tabPage2 = new TabPage();
+            btnCleanFiles = new Button();
+            label8 = new Label();
+            chbMinize = new CheckBox();
+            label7 = new Label();
+            checkBox1 = new CheckBox();
             btnSave = new Button();
             label4 = new Label();
             nudKeepUnusedDays = new NumericUpDown();
@@ -69,6 +80,7 @@
             columnHeader3 = new ColumnHeader();
             tabPage4 = new TabPage();
             txtInfo = new TextBox();
+            cmTray.SuspendLayout();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -186,9 +198,50 @@
             // 
             nfTray.BalloonTipText = "Steam Proxy LAN Cache";
             nfTray.BalloonTipTitle = "Steam Proxy LAN Cache";
+            nfTray.ContextMenuStrip = cmTray;
             nfTray.Icon = (Icon)resources.GetObject("nfTray.Icon");
             nfTray.Text = "Steam Proxy LAN Cache";
             nfTray.MouseClick += nfTray_MouseClick;
+            nfTray.MouseDoubleClick += nfTray_MouseDoubleClick;
+            // 
+            // cmTray
+            // 
+            cmTray.Items.AddRange(new ToolStripItem[] { steamProxyLanCachToolStripMenuItem, toolStripMenuItem1, tsmiStatus, toolStripMenuItem2, exitToolStripMenuItem });
+            cmTray.Name = "cmTray";
+            cmTray.Size = new Size(198, 82);
+            // 
+            // steamProxyLanCachToolStripMenuItem
+            // 
+            steamProxyLanCachToolStripMenuItem.BackColor = SystemColors.Control;
+            steamProxyLanCachToolStripMenuItem.Image = (Image)resources.GetObject("steamProxyLanCachToolStripMenuItem.Image");
+            steamProxyLanCachToolStripMenuItem.Name = "steamProxyLanCachToolStripMenuItem";
+            steamProxyLanCachToolStripMenuItem.Size = new Size(197, 22);
+            steamProxyLanCachToolStripMenuItem.Text = "Steam Proxy Lan Cache";
+            steamProxyLanCachToolStripMenuItem.Click += steamProxyLanCachToolStripMenuItem_Click;
+            // 
+            // toolStripMenuItem1
+            // 
+            toolStripMenuItem1.Name = "toolStripMenuItem1";
+            toolStripMenuItem1.Size = new Size(194, 6);
+            // 
+            // tsmiStatus
+            // 
+            tsmiStatus.Enabled = false;
+            tsmiStatus.Name = "tsmiStatus";
+            tsmiStatus.Size = new Size(197, 22);
+            tsmiStatus.Text = "Status";
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size(194, 6);
+            // 
+            // exitToolStripMenuItem
+            // 
+            exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            exitToolStripMenuItem.Size = new Size(197, 22);
+            exitToolStripMenuItem.Text = "Exit";
+            exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
             // tabControl1
             // 
@@ -291,6 +344,11 @@
             // 
             // tabPage2
             // 
+            tabPage2.Controls.Add(btnCleanFiles);
+            tabPage2.Controls.Add(label8);
+            tabPage2.Controls.Add(chbMinize);
+            tabPage2.Controls.Add(label7);
+            tabPage2.Controls.Add(checkBox1);
             tabPage2.Controls.Add(btnSave);
             tabPage2.Controls.Add(label4);
             tabPage2.Controls.Add(nudKeepUnusedDays);
@@ -313,6 +371,56 @@
             tabPage2.TabIndex = 1;
             tabPage2.Text = "     Settings     ";
             tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // btnCleanFiles
+            // 
+            btnCleanFiles.Location = new Point(271, 145);
+            btnCleanFiles.Name = "btnCleanFiles";
+            btnCleanFiles.Size = new Size(143, 22);
+            btnCleanFiles.TabIndex = 26;
+            btnCleanFiles.Text = "Clean cache now";
+            btnCleanFiles.UseVisualStyleBackColor = true;
+            btnCleanFiles.Click += btnCleanFiles_Click;
+            // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(8, 241);
+            label8.Name = "label8";
+            label8.Size = new Size(98, 15);
+            label8.TabIndex = 25;
+            label8.Text = "Minimize at start:";
+            // 
+            // chbMinize
+            // 
+            chbMinize.AutoSize = true;
+            chbMinize.Checked = true;
+            chbMinize.CheckState = CheckState.Checked;
+            chbMinize.Location = new Point(137, 242);
+            chbMinize.Name = "chbMinize";
+            chbMinize.Size = new Size(15, 14);
+            chbMinize.TabIndex = 24;
+            chbMinize.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(8, 185);
+            label7.Name = "label7";
+            label7.Size = new Size(124, 15);
+            label7.TabIndex = 23;
+            label7.Text = "Auto start application:";
+            // 
+            // checkBox1
+            // 
+            checkBox1.AutoSize = true;
+            checkBox1.Checked = true;
+            checkBox1.CheckState = CheckState.Checked;
+            checkBox1.Location = new Point(137, 185);
+            checkBox1.Name = "checkBox1";
+            checkBox1.Size = new Size(15, 14);
+            checkBox1.TabIndex = 22;
+            checkBox1.UseVisualStyleBackColor = true;
             // 
             // btnSave
             // 
@@ -356,18 +464,18 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(8, 193);
+            label3.Location = new Point(8, 213);
             label3.Name = "label3";
-            label3.Size = new Size(62, 15);
+            label3.Size = new Size(94, 15);
             label3.TabIndex = 17;
-            label3.Text = "Auto start:";
+            label3.Text = "Auto start proxy:";
             // 
             // chbAutoStart
             // 
             chbAutoStart.AutoSize = true;
             chbAutoStart.Checked = true;
             chbAutoStart.CheckState = CheckState.Checked;
-            chbAutoStart.Location = new Point(137, 193);
+            chbAutoStart.Location = new Point(137, 214);
             chbAutoStart.Name = "chbAutoStart";
             chbAutoStart.Size = new Size(15, 14);
             chbAutoStart.TabIndex = 16;
@@ -445,6 +553,7 @@
             FormClosing += SteamProxyLanCache_FormClosing;
             Load += SteamProxyLanCache_Load;
             Resize += SteamProxyLanCache_Resize;
+            cmTray.ResumeLayout(false);
             tabControl1.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             groupBox2.ResumeLayout(false);
@@ -500,5 +609,16 @@
         private TextBox txtInfo;
         private Label lblDnsStatus;
         private Button btnSave;
+        private Label label8;
+        private CheckBox chbMinize;
+        private Label label7;
+        private CheckBox checkBox1;
+        private ContextMenuStrip cmTray;
+        private ToolStripMenuItem exitToolStripMenuItem;
+        private ToolStripMenuItem steamProxyLanCachToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem1;
+        private ToolStripMenuItem tsmiStatus;
+        private ToolStripSeparator toolStripMenuItem2;
+        private Button btnCleanFiles;
     }
 }
