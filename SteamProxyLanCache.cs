@@ -141,14 +141,14 @@ namespace SteamProxyLanCache
             try
             {
                 var ip = Dns.GetHostEntry("lancache.steamcontent.com");
-                var s = "DNS OK: " + ip.AddressList[0];
+                var s = "DNS lancache.steamcontent.com OK: " + ip.AddressList[0];
                 lblDnsStatus.Text = s;
                 LogLine(s, "");
                 return true;
             }
             catch (Exception)
             {
-                var s = "DNS Issue !!!";
+                var s = "DNS Issue !!! Can't resolve lancache.steamcontent.com";
                 lblDnsStatus.Text = s;
                 LogLine(s, "");
                 btnRun.Enabled = false;
@@ -189,6 +189,7 @@ namespace SteamProxyLanCache
             if (listener == null)
             {
                 listener = new HttpListener();
+                
             }
 
 
@@ -214,6 +215,8 @@ namespace SteamProxyLanCache
                     try
                     {
                         HttpListenerContext context = await listener.GetContextAsync();
+       
+                     
                         var reqThProcessor = new Thread(() => ProcessRequest(context));
                         reqThProcessor.Start();
                     }
@@ -276,9 +279,14 @@ namespace SteamProxyLanCache
                 LogLine("Request " + originalContext.Request.RawUrl, steamurl);
 
                 var relayRequest = (HttpWebRequest)WebRequest.Create(steamurl);
-                relayRequest.KeepAlive = false;
+                relayRequest.KeepAlive = true;
                 relayRequest.Proxy.Credentials = CredentialCache.DefaultCredentials;
                 relayRequest.UserAgent = originalContext.Request.UserAgent;
+                
+                for(int i = 0; i<originalContext.Request.Headers.Count;i++)
+                {
+                    relayRequest.Headers.Add(originalContext.Request.Headers.Keys[i], originalContext.Request.Headers[i]);
+                }
 
                 var requestData = new RequestState(relayRequest, originalContext);
                 relayRequest.BeginGetResponse(ResponseCallBack, requestData);
