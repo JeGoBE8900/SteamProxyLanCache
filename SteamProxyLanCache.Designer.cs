@@ -449,7 +449,7 @@
             nudKeepUnusedDays.Name = "nudKeepUnusedDays";
             nudKeepUnusedDays.Size = new Size(120, 23);
             nudKeepUnusedDays.TabIndex = 19;
-            nudKeepUnusedDays.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            nudKeepUnusedDays.Value = new decimal(new int[] { 21, 0, 0, 0 });
             // 
             // btnSaveSettings
             // 

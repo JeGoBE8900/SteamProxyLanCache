@@ -671,40 +671,22 @@ namespace SteamProxyLanCache
 
             LogLine("Start cleaning cache", "");
 
-            int negDaysRemoval = 0;
-            if (daysRemoval > 0) { negDaysRemoval = daysRemoval * -1; }
-            else { negDaysRemoval = daysRemoval; }
+            var filesDeleted = oCacheDB.CleanCacheDBFiles(daysRemoval, steamLocalCacheFolder);
+            LogLine(filesDeleted + " deleted from cache.db", "");
 
-            string[] files = Directory.GetFiles(steamLocalCacheFolder, "*.dat", SearchOption.AllDirectories);
-            LogLine(files.Length + " files in cache", "");
+            filesDeleted = oCacheDB.CleanCacheDiskFiles(daysRemoval, steamLocalCacheFolder);
+            LogLine(filesDeleted + " deleted from disk not in cache.db", "");
 
-            int filesDeleted = 0;
 
-            foreach (string sFile in files)
-            {
-                string sFileName = sFile.Replace(steamLocalCacheFolder, "");
-                sFileName = sFileName.Replace(".dat", "");
-
-                Boolean bCacheFileToUnregister = oCacheDB.CacheFileToUnregister(sFileName, DateAndTime.Now.AddDays(negDaysRemoval));
-
-                if (bCacheFileToUnregister)
-                {
-                    File.Delete(sFile);
-                    oCacheDB.UnregisterCacheFile(sFileName);
-                    filesDeleted ++;
-
-                }
-
-            }
-
-            LogLine(filesDeleted + " deleted from cache", "");
             LogLine("End cleaning cache", "");
 
         }
 
         private void btnCleanFiles_Click(object sender, EventArgs e)
         {
+            this.Cursor= Cursors.WaitCursor;
             CleanFilesFromDisk();
+            this.Cursor = Cursors.Default;
         }
 
         #endregion diskspace

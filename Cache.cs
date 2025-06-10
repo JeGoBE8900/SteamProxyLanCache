@@ -6,7 +6,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using static System.ComponentModel.Design.ObjectSelectorEditor;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace SteamProxyLanCache
 {
@@ -92,57 +94,109 @@ namespace SteamProxyLanCache
 
         }
 
-        public void UnregisterCacheFile(string name)
+        public int CleanCacheDBFiles(int days, string cachefilepath)
         {
-            if (conn.State != System.Data.ConnectionState.Open)
-            {
-                conn.Open();
-            }
-
-            var command = conn.CreateCommand();
-            command.CommandText = "DELETE FROM cache WHERE name = '" + name + "'";
-            command.ExecuteNonQuery();
-
-            filecache.RemoveAll(c => c.Contains(name));
-
-        }
 
 
-        public Boolean CacheFileToUnregister(string name, DateTime dateCheck)
-        {
-            name = name.Replace(@"\", @"/");
 
+            int filesDeleted = 0;
+
+            if (days > 0) { days = days * -1; }
+  
 
             if (conn.State != System.Data.ConnectionState.Open)
             {
                 conn.Open();
             }
 
-            var command = conn.CreateCommand();
-            command.CommandText = "SELECT name,accessed FROM cache WHERE name = '"+ name +"' LIMIT 1";
 
+            //first clean the files which are in database
+
+            string sql = "SELECT * FROM cache WHERE accessed <= '" + DateAndTime.Now.AddDays(days).ToString("yyyyMMdd") + "'";
+
+            var command = conn.CreateCommand();
+            command.CommandText = sql;
             using (var reader = command.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                   string filename = reader.GetString(0);
-                   DateTime fileaccessed = DateTime.ParseExact(reader.GetString(1), sDateFormat, new CultureInfo("nl-BE"));
+                    string filename = cachefilepath + "\\" + reader.GetString(0) + ".dat";
+                    DateTime fileaccessed = DateTime.ParseExact(reader.GetString(1), sDateFormat, new CultureInfo("nl-BE"));
 
+                    if(fileaccessed <= DateAndTime.Now.AddDays(days)){
+                        if (File.Exists(filename))
+                        {
+                            File.Delete(filename);
+                        }
 
-                    if (fileaccessed < dateCheck)
-                    {
-
-                        return true;
+                        filesDeleted++;
                     }
-                    else
-                    {
-                        return false;
-                    }
-  
+
+
+
                 }
+
             }
 
-            return true;
+            sql = "DELETE FROM cache WHERE accessed <= '" + DateAndTime.Now.AddDays(days).ToString("yyyyMMdd") + "'";
+            command = conn.CreateCommand();
+            command.CommandText = sql;
+            command.ExecuteNonQuery();
+
+
+
+            return filesDeleted;
+
         }
+
+        public int CleanCacheDiskFiles(int days, string cachefilepath)
+        {
+
+
+
+            int filesDeleted = 0;
+
+            if (days > 0) { days = days * -1; }
+
+
+            if (conn.State != System.Data.ConnectionState.Open)
+            {
+                conn.Open();
+            }
+
+
+            //second loop through files on disk and see if they are in database, if not, delete the file;
+
+            string[] files = Directory.GetFiles(cachefilepath, "*.dat", SearchOption.AllDirectories);
+
+            foreach (string sFile in files)
+            {
+                string sFileName = sFile.Replace(cachefilepath, "");
+                sFileName = sFileName.Replace(".dat", "");
+                sFileName = sFileName.Replace("\\", "/");
+
+                string sql = "SELECT * FROM cache WHERE name = '" + sFileName + "'";
+                var command = conn.CreateCommand();
+                command.CommandText = sql;
+                var reader = command.ExecuteReader();
+
+                if (!reader.HasRows)
+                {
+                    File.Delete(sFile);
+                    filesDeleted++;
+                }
+
+            }
+
+            /*sql = "VACUUM cache.db";
+            command = conn.CreateCommand();
+            command.CommandText = sql;
+            command.ExecuteNonQuery();*/
+
+
+            return filesDeleted;
+
+        }
+
     }
 }
